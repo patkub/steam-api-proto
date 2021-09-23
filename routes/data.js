@@ -7,7 +7,8 @@ var router = express.Router();
 // a nodejs wrapper that has part of the data
 // https://www.npmjs.com/package/steamapi
 
-const STEAM_API_KEY = "YOUR_API_KEY_HERE"
+const config = require('../config')
+const STEAM_API_KEY = config.STEAM_API_KEY
 
 // for http requests
 const axios = require('axios')

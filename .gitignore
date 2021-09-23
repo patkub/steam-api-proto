@@ -125,6 +125,7 @@ dist
 # End of https://www.toptal.com/developers/gitignore/api/node
 
 steam_key
+config.js
 database.sqlite3
 game-data-1.json
 user-owned-games.json
