@@ -39,6 +39,65 @@ router.get('/', function(req, res, next) {
     })
 });
 
+// GET /steam/summary
+// Produces: application/json
+// Input: QueryParams: id
+// i.e. http://localhost:3000/steam/summary?id=76561197989862681
+// Response json structure:
+/*
+{
+    "status": "success",
+    "data": {
+        "summary": {
+            "avatar": {
+                "small": "...",
+                "medium": "...",
+                "large": "..."
+            },
+            "steamID": "...",
+            "url": "...",
+            "created": ...,
+            "lastLogOff": ...,
+            "nickname": "...",
+            "realName": "...",
+            "primaryGroupID": "...",
+            "personaState": ...,
+            "personaStateFlags": ...,
+            "commentPermission": ...,
+            "visibilityState": ...
+        }
+    }
+}
+*/
+router.get('/summary', function(req, res, next) {
+
+    const data = {}
+
+    // get steam id as query parameters
+    const id = req.query.id
+
+    // get user summary
+    const pSummary = steam.getUserSummary(id)
+
+    pSummary.then((summary) => {
+        //...
+        data.summary = summary
+        // return summary data
+        return res.status(200).json({
+            status: "success",
+            data: data,
+        })
+    })
+    .catch((reason) => {
+        // error getting user summary
+        return res.status(500).json({
+            status: "error",
+            message: reason.message,
+        })
+    })
+
+});
+
 // GET /steam/commonFriends
 // Produces: application/json
 // Input: QueryParams: id1, id2
@@ -141,6 +200,7 @@ router.get('/commonFriends', function(req, res, next) {
                 message: reason.message,
             })
         })
+
 });
 
 
@@ -275,6 +335,7 @@ router.get('/commonGroups', function(req, res, next) {
                 message: reason.message,
             })
         })
+
 });
 
 module.exports = router;

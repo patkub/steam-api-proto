@@ -24,6 +24,11 @@ sqlite3 data will be returned at this endpoint: http://localhost:3000/data
 
 API Endpoints:
 ```
+// GET /steam/summary
+// Produces: application/json
+// Input: QueryParams: id
+// i.e. http://localhost:3000/steam/summary?id=76561197989862681
+
 // GET /steam/commonFriends
 // Produces: application/json
 // Input: QueryParams: id1, id2
