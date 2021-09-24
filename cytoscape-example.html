@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <style>
+    #cy {
+        height: 100%;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 200;
+    }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/2.3.15/cytoscape.js"></script>
+    <script type="text/javascript">
+		window.onload = function() {
+			var cy = cytoscape({
+				container: document.getElementById('cy'),
+				style: [
+					{
+						selector: 'node',
+						css: {
+							width: 50,
+							height: 50,
+							'background-color':'#61bffc',
+							content: 'data(id)'
+						}
+						
+					}
+				],
+				elements: {
+			
+                        
+					nodes: [
+				        { data: { id: 'A' } },
+				        { data: { id: 'B' } },
+				        { data: { id: 'C' } },
+				        { data: { id: 'D' } },
+				        { data: { id: 'E' } },
+				        { data: { id: 'F' } }
+				      
+				    ],
+				  edges: [
+  				      { data: { id: 'e1', source: 'A', target: 'C' } },
+  				      { data: { id: 'e2', source: 'A', target: 'D' } },
+  				      { data: { id: 'e3', source: 'A', target: 'E' } },
+  				      { data: { id: 'e4', source: 'A', target: 'F' } },
+  				      { data: { id: 'e5', source: 'C', target: 'B' } },
+  				      { data: { id: 'e6', source: 'D', target: 'B' } },
+  				      { data: { id: 'e7', source: 'E', target: 'B' } },
+  				      { data: { id: 'e8', source: 'F', target: 'B' } }
+				    ]
+				},
+				layout: {
+				    name: 'breadthfirst',
+				    directed: true,
+				    padding: 10,
+				   /* color: "#ffff00",*/
+				    fit: true
+				}
+			});
+		}
+		
+	</script>
+  </head>
+
+  <body>
+    <h1>Cytoscape.js Simple Demo</h1>
+    <div id="cy"></div>
+  </body>
+
+</html>
