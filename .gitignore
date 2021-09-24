@@ -124,6 +124,10 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 
+# stylesheets
+public/stylesheets/*.css
+public/stylesheets/*.css.map
+
 steam_key
 config.js
 database.sqlite3

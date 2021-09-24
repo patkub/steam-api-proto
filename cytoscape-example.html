@@ -14,7 +14,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/2.3.15/cytoscape.js"></script>
     <script type="text/javascript">
 		window.onload = function() {
-			var cy = cytoscape({
+            fetch('http://localhost:3000/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
+                .then(response => response.json())
+                .then(data => {
+                    //console.log(data)
+                    var cy = initCytoscape()
+                    makeGraph(cy, data)
+                });
+        }
+
+        function initCytoscape() {
+            var cy = cytoscape({
 				container: document.getElementById('cy'),
 				style: [
 					{
@@ -28,38 +38,44 @@
 						
 					}
 				],
-				elements: {
-			
-                        
-					nodes: [
-				        { data: { id: 'A' } },
-				        { data: { id: 'B' } },
-				        { data: { id: 'C' } },
-				        { data: { id: 'D' } },
-				        { data: { id: 'E' } },
-				        { data: { id: 'F' } }
-				      
-				    ],
-				  edges: [
-  				      { data: { id: 'e1', source: 'A', target: 'C' } },
-  				      { data: { id: 'e2', source: 'A', target: 'D' } },
-  				      { data: { id: 'e3', source: 'A', target: 'E' } },
-  				      { data: { id: 'e4', source: 'A', target: 'F' } },
-  				      { data: { id: 'e5', source: 'C', target: 'B' } },
-  				      { data: { id: 'e6', source: 'D', target: 'B' } },
-  				      { data: { id: 'e7', source: 'E', target: 'B' } },
-  				      { data: { id: 'e8', source: 'F', target: 'B' } }
-				    ]
-				},
 				layout: {
 				    name: 'breadthfirst',
 				    directed: true,
 				    padding: 10,
-				   /* color: "#ffff00",*/
 				    fit: true
 				}
 			});
-		}
+            return cy
+        }
+
+        function makeGraph(cy, data) {
+            console.log(data)
+            const info = data.data
+            cy.add({
+                group: 'nodes',
+                data: {
+                    id: info.id1Summary.nickname,
+                    name: info.id1Summary.nickname
+                },
+            });
+            cy.add({
+                group: 'nodes',
+                data: {
+                    id: info.id2Summary.nickname,
+                    name: info.id2Summary.nickname
+                },
+            });
+            for (const friend of info.commonFriends) {
+                var eles = cy.add([
+                    // add common friend node
+                    { group: 'nodes', data: { id: friend.nickname, name: friend.nickname } },
+                    // from id1 to friend
+                    { group: 'edges', data: { id: 'e1_' + friend.nickname, source: info.id1Summary.nickname, target: friend.nickname } },
+                    // from friend to id2
+                    { group: 'edges', data: { id: 'e2_' + friend.nickname, source: friend.nickname, target: info.id2Summary.nickname } }
+                ]);
+            }
+        }
 		
 	</script>
   </head>

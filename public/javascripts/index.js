@@ -1,27 +1,62 @@
-document.addEventListener("DOMContentLoaded", function() {
-    fetch('http://localhost:3000/data')
+window.onload = function() {
+    fetch('http://localhost:3000/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
         .then(response => response.json())
         .then(data => {
-            console.log(data)
-            // data anchor
-            const dataDiv = document.getElementById("data")
+            var cy = initCytoscape()
+            makeGraph(cy, data)
+        });
+}
 
-            // html header
-            const header = document.createElement("h2")
-            header.appendChild(document.createTextNode("Data"))
-            dataDiv.appendChild(header);
-
-            // list
-            var ul = document.createElement('ul')
-
-            for (const d of data.data) {
-                var li = document.createElement('li')
-                var content = document.createTextNode("id: " + d.id + ", name: " + d.name)
-                li.appendChild(content)
-                ul.appendChild(li)
+function initCytoscape() {
+    var cy = cytoscape({
+        container: document.getElementById('cy'),
+        style: [
+            {
+                selector: 'node',
+                css: {
+                    width: 50,
+                    height: 50,
+                    'background-color':'#61bffc',
+                    content: 'data(id)'
+                }
+                
             }
+        ],
+        layout: {
+            name: 'breadthfirst',
+            directed: true,
+            padding: 10,
+            fit: true
+        }
+    });
+    return cy
+}
 
-            dataDiv.appendChild(ul)
-
-        })
-});
+function makeGraph(cy, data) {
+    console.log(data)
+    const info = data.data
+    cy.add({
+        group: 'nodes',
+        data: {
+            id: info.id1Summary.nickname,
+            name: info.id1Summary.nickname
+        },
+    });
+    cy.add({
+        group: 'nodes',
+        data: {
+            id: info.id2Summary.nickname,
+            name: info.id2Summary.nickname
+        },
+    });
+    for (const friend of info.commonFriends) {
+        var eles = cy.add([
+            // add common friend node
+            { group: 'nodes', data: { id: friend.nickname, name: friend.nickname } },
+            // from id1 to friend
+            { group: 'edges', data: { id: 'e1_' + friend.nickname, source: info.id1Summary.nickname, target: friend.nickname } },
+            // from friend to id2
+            { group: 'edges', data: { id: 'e2_' + friend.nickname, source: friend.nickname, target: info.id2Summary.nickname } }
+        ]);
+    }
+}

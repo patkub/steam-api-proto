@@ -2,12 +2,22 @@
 <html>
   <head>
     <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='stylesheets/style.css' />
+    <style>
+      #cy {
+          height: 100%;
+          width: 100%;
+          position: absolute;
+          left: 0;
+          top: 200;
+      }
+      </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/2.3.15/cytoscape.js"></script>
     <script src="javascripts/index.js"></script>
   </head>
   <body>
     <!-- <h1><%= title %></h1>
     <p>Welcome to <%= title %></p> -->
-    <div id="data"></div>
+    <div id="cy"></div>
   </body>
 </html>
