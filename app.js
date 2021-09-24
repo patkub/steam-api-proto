@@ -4,7 +4,8 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var sassMiddleware = require('node-sass-middleware');
-var cors = require('cors')
+// for cors
+//var cors = require('cors')
 
 var indexRouter = require('./routes/index');
 var dataRouter = require('./routes/data');
@@ -26,8 +27,7 @@ app.use(sassMiddleware({
   indentedSyntax: true, // true = .sass and false = .scss
   sourceMap: true
 }));
-// enable cors
-app.use(cors())
+//app.use(cors()) // enable cors
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);

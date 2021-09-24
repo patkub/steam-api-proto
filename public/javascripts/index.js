@@ -1,5 +1,5 @@
 window.onload = function() {
-    fetch('http://localhost:3000/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
+    fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
         .then(response => response.json())
         .then(data => {
             var cy = initCytoscape()
