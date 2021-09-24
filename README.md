@@ -21,3 +21,16 @@ npm start
 ```
 
 sqlite3 data will be returned at this endpoint: http://localhost:3000/data
+
+API Endpoints:
+```
+// GET /steam/commonFriends
+// Produces: application/json
+// Input: QueryParams: id1, id2
+// i.e. http://localhost:3000/steam/commonFriends?id1=76561197989862681&id2=76561197962845430
+
+// GET /steam/commonGroups
+// Produces: application/json
+// Input: QueryParams: id1, id2
+// i.e. http://localhost:3000/steam/commonGroups?id1=76561197989862681&id2=76561197962845430
+```

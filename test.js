@@ -74,7 +74,7 @@ const url1 = "https://steamcommunity.com/id/patka"
 const url2 = "https://steamcommunity.com/id/EHG"
 
 steamUrlsToId(url1, url2).then((data) => {
-  // { id1: '76561197989862681', id2: '76561198412503421' }
+  // { id1: '76561197989862681', id2: '76561197962845430' }
 
   const pId1Summary = steam.getUserSummary(data.id1)
   const pId2Summary = steam.getUserSummary(data.id2)

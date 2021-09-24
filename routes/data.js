@@ -1,23 +1,6 @@
 var express = require('express');
 var router = express.Router();
 
-// steam web api
-// https://developer.valvesoftware.com/wiki/Steam_Web_API
-
-// a nodejs wrapper that has part of the data
-// https://www.npmjs.com/package/steamapi
-
-const config = require('../config')
-const STEAM_API_KEY = config.STEAM_API_KEY
-
-// for http requests
-const axios = require('axios')
-const xml2js = require('xml2js')
-
-// Steam API
-const SteamAPI = require("steamapi")
-const steam = new SteamAPI(STEAM_API_KEY)
-
 // for data storage
 // https://stackabuse.com/a-sqlite-tutorial-with-node-js/
 const AppDAO = require('../dao/dao')
@@ -27,9 +10,16 @@ const DataRepository = require("../dao/data-repository")
 const dao = new AppDAO('./database.sqlite3', false /* trace for debugging */)
 const dataRepo = new DataRepository(dao)
 
+// sqlite3 database
+dataRepo.createTable()
+  .catch((err) => {
+    // error handler
+    console.log('Error: ')
+    console.log(JSON.stringify(err))
+  })
 
 // Example sqlite3 database
-var dataId;
+/*var dataId;
 dataRepo.createTable()
   .then(() => {
     console.log("Creating data...")
@@ -63,7 +53,7 @@ dataRepo.createTable()
     console.log('Error: ')
     console.log(JSON.stringify(err))
   })
-
+*/
 
 /* GET data listing. */
 router.get('/', function(req, res, next) {
