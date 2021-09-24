@@ -108,8 +108,6 @@ router.get('/summary', function(req, res, next) {
     "status": "success",
     "data": {
         "commonFriendIds": ["...", "..."],
-        "id1Summary": {},
-        "id2Summary": {}
         "commonFriends": [
             {
                 "avatar": {
@@ -146,30 +144,19 @@ router.get('/commonFriends', function(req, res, next) {
     const id1 = req.query.id1
     const id2 = req.query.id2
 
-    // promises to get user summaries
-    const pId1Summary = steam.getUserSummary(id1)
-    const pId2Summary = steam.getUserSummary(id2)
-
     // promises to get friends lists
     const pId1Friends = steam.getUserFriends(id1)
     const pId2Friends = steam.getUserFriends(id2)
 
     const pAll = [
-        pId1Summary,
-        pId2Summary,
         pId1Friends,
         pId2Friends
     ]
 
     Promise.all(pAll)
         .then((friends) => {
-            const summary1 = friends[0]
-            const summary2 = friends[1]
-            const friendList1 = friends[2]
-            const friendList2 = friends[3]
-
-            data.id1Summary = summary1
-            data.id2Summary = summary2
+            const friendList1 = friends[0]
+            const friendList2 = friends[1]
 
             // find steam ids of common friends between the two users
             const commonFriendIds = []

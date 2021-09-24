@@ -1,10 +1,15 @@
 window.onload = function() {
-    fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
-        .then(response => response.json())
-        .then(data => {
-            var cy = initCytoscape()
-            makeGraph(cy, data)
-        });
+    const pUser1 = fetch('/steam/summary?id=76561197989862681')
+    const pUser2 = fetch('/steam/summary?id=76561197962845430')
+    const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
+
+    Promise.all([pUser1, pUser2, pCommonFriends])
+        .then(responses =>
+            Promise.all(responses.map(res => res.json()))
+        ).then(data => {
+            const cy = initCytoscape()
+            makeGraph(cy, data[0].data, data[1].data, data[2].data)
+        })
 }
 
 function initCytoscape() {
@@ -32,38 +37,38 @@ function initCytoscape() {
     return cy
 }
 
-function makeGraph(cy, data) {
-    console.log(data)
-    const info = data.data
+function makeGraph(cy, user1, user2, commonFriends) {
+    const user1Summary = user1.summary
+    const user2Summary = user2.summary
     cy.add({
         group: 'nodes',
         data: {
-            id: info.id1Summary.nickname,
-            name: info.id1Summary.nickname
+            id: user1Summary.nickname,
+            name: user1Summary.nickname
         },
     });
     cy.add({
         group: 'nodes',
         data: {
-            id: info.id2Summary.nickname,
-            name: info.id2Summary.nickname
+            id: user2Summary.nickname,
+            name: user2Summary.nickname
         },
     });
-    cy.nodes('[id = "' + info.id1Summary.nickname + '"]').style({
-        'background-image': info.id1Summary.avatar.medium
+    cy.nodes('[id = "' + user1Summary.nickname + '"]').style({
+        'background-image': user1Summary.avatar.medium
     })
-    cy.nodes('[id = "' + info.id2Summary.nickname + '"]').style({
-        'background-image': info.id2Summary.avatar.medium
+    cy.nodes('[id = "' + user2Summary.nickname + '"]').style({
+        'background-image': user2Summary.avatar.medium
     })
-    for (const friend of info.commonFriends) {
+    for (const friend of commonFriends.commonFriends) {
         // friend.avatar.medium
         var eles = cy.add([
             // add common friend node
             { group: 'nodes', data: { id: friend.nickname, name: friend.nickname } },
             // from id1 to friend
-            { group: 'edges', data: { id: 'e1_' + friend.nickname, source: info.id1Summary.nickname, target: friend.nickname } },
+            { group: 'edges', data: { id: 'e1_' + friend.nickname, source: user1Summary.nickname, target: friend.nickname } },
             // from friend to id2
-            { group: 'edges', data: { id: 'e2_' + friend.nickname, source: friend.nickname, target: info.id2Summary.nickname } }
+            { group: 'edges', data: { id: 'e2_' + friend.nickname, source: friend.nickname, target: user2Summary.nickname } }
         ]);
         cy.nodes('[id = "' + friend.nickname + '"]').style({
             'background-image': friend.avatar.medium
