@@ -49,7 +49,14 @@ function makeGraph(cy, data) {
             name: info.id2Summary.nickname
         },
     });
+    cy.nodes('[id = "' + info.id1Summary.nickname + '"]').style({
+        'background-image': info.id1Summary.avatar.medium
+    })
+    cy.nodes('[id = "' + info.id2Summary.nickname + '"]').style({
+        'background-image': info.id2Summary.avatar.medium
+    })
     for (const friend of info.commonFriends) {
+        // friend.avatar.medium
         var eles = cy.add([
             // add common friend node
             { group: 'nodes', data: { id: friend.nickname, name: friend.nickname } },
@@ -58,5 +65,8 @@ function makeGraph(cy, data) {
             // from friend to id2
             { group: 'edges', data: { id: 'e2_' + friend.nickname, source: friend.nickname, target: info.id2Summary.nickname } }
         ]);
+        cy.nodes('[id = "' + friend.nickname + '"]').style({
+            'background-image': friend.avatar.medium
+        });
     }
 }
