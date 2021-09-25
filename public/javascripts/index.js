@@ -1,7 +1,14 @@
 window.onload = function() {
+    // patka = 76561197989862681
+    // ehg = 76561197962845430
+    // altix = 76561198136308086
     const pUser1 = fetch('/steam/summary?id=76561197989862681')
     const pUser2 = fetch('/steam/summary?id=76561197962845430')
     const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
+
+    /*const pUser1 = fetch('/steam/summary?id=76561197989862681')
+    const pUser2 = fetch('/steam/summary?id=76561198136308086')
+    const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561198136308086')*/
 
     Promise.all([pUser1, pUser2, pCommonFriends])
         .then(responses =>
