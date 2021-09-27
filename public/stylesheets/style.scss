@@ -1,3 +1,5 @@
+$cy-size: 300px;
+
 body {
   padding: 0;
   margin: 0;
@@ -9,7 +11,7 @@ a {
 }
 
 #cy {
-  height: 300px;
-  width: 300px;
+  height: $cy-size;
+  width: $cy-size;
   display: block;
 }

@@ -40,4 +40,4 @@ API Endpoints:
 // i.e. http://localhost:3000/steam/commonGroups?id1=76561197989862681&id2=76561197962845430
 ```
 
-Supports `.css` and `.sass` files.
+Supports `.css` and `.scss` files.
