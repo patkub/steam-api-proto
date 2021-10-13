@@ -17,7 +17,7 @@
     "morgan": "~1.9.1",
     "node-sass-middleware": "0.11.0",
     "sqlite3": "^5.0.2",
-    "steamapi": "github:patkub/node-steamapi#enhanced",
+    "steamapi": "^2.2.0",
     "xml2js": "^0.4.23"
   }
 }
