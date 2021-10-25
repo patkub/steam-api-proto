@@ -338,4 +338,51 @@ router.get('/commonGroups', function(req, res, next) {
 
 });
 
+router.get('/commonGames', function(req, res, next) {
+    const data = {
+        // steam ids of common friends
+        commonGameIds: [],
+        // common friend data
+        commonGames: []
+    }
+
+    // get steam ids as query parameters
+    const id1 = req.query.id1
+    const id2 = req.query.id2
+
+    // promises to get friends lists
+    const pId1Games = steam.getUserOwnedGames(id1)
+    const pId2Games = steam.getUserOwnedGames(id2)
+
+    const pAll = [
+        pId1Games,
+        pId2Games
+    ]
+
+    Promise.all(pAll)
+        .then((games) => {
+            const gameList1 = games[0]
+            const gameList2 = games[1]
+            // find steam ids of common friends between the two users
+            const commonGameIds = []
+            for (const g1 of gameList1) {
+                for (const g2 of gameList2) {
+                    if (g1.appID == g2.appID) {
+                        commonGameIds.push(g1.appID)
+                    }
+                }
+            }
+            data.commonGameIds = commonGameIds
+            
+        })
+        .catch((reason) => {
+            // error getting friend lists
+            return res.status(500).json({
+                status: "error",
+                message: reason.message,
+            })
+        })
+
+});
+
 module.exports = router;

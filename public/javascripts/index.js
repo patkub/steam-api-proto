@@ -5,6 +5,7 @@ window.onload = function() {
     const pUser1 = fetch('/steam/summary?id=76561197989862681')
     const pUser2 = fetch('/steam/summary?id=76561197962845430')
     const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
+    const pCommonGames = fetch('/steam/commonGames?id1=76561197989862681&id2=76561197962845430')
 
     /*const pUser1 = fetch('/steam/summary?id=76561197989862681')
     const pUser2 = fetch('/steam/summary?id=76561198136308086')
