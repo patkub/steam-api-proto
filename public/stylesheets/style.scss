@@ -53,3 +53,15 @@ form {
     }
   }
 }
+
+#cy {
+  height: $cy-size;
+  width: $cy-size;
+  display: block;
+}
+.panels {
+  display: flex;
+}
+.panel {
+  flex: 1;
+}
