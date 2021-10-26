@@ -3,21 +3,36 @@
   <head>
     <title><%= title %></title>
     <link rel='stylesheet' href='stylesheets/style.css' />
-    <style>
-      #cy {
-          height: 100%;
-          width: 100%;
-          position: absolute;
-          left: 0;
-          top: 200;
-      }
-      </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/2.3.15/cytoscape.js"></script>
     <script src="javascripts/index.js"></script>
   </head>
   <body>
-    <!-- <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p> -->
-    <div id="cy"></div>
+    <nav id="nav"></nav>
+
+    <div class="panels">
+      <div class="panel-1">
+        <form>
+          <h1>Steam IDs</h1>
+          <br>
+          <input id="id1" type="text" />
+          <br>
+          <input id="id2" type="text" />
+          <br>
+          <button>Generate</button>
+        </form>
+
+        <form>
+          <h1>Highlight Game</h1>
+          <br>
+          <select id="game" disabled>
+          </select>
+          <br>
+        </form>
+      </div>
+      <div class="panel-2">
+        <div id="cy"></div>
+      </div>
+    </div>
+    
   </body>
 </html>
