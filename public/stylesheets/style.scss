@@ -1,4 +1,3 @@
-$cy-size: 300px;
 $blue-background: #1B2838;
 $blue-nav: #171A21;
 $blue-h1: #5EAFDE;
@@ -55,13 +54,16 @@ form {
 }
 
 #cy {
-  height: $cy-size;
-  width: $cy-size;
+  height: 100%;
+  width: 100%;
   display: block;
 }
 .panels {
   display: flex;
 }
-.panel {
+.panel-1 {
   flex: 1;
+}
+.panel-2 {
+  flex: 3;
 }
