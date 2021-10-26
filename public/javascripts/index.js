@@ -1,23 +1,40 @@
 window.onload = function() {
+
+    var btn = document.getElementById("btnGenerate")
+    btn.addEventListener("click", function(e) {
+        //console.log("generate button clicked")
+        var in1 = document.getElementById("id1").value
+        var in2 = document.getElementById("id2").value
+        //console.log(in1)
+        //console.log(in2)
+
+        const pUser1 = fetch('/steam/summary?id=' + in1)
+        const pUser2 = fetch('/steam/summary?id=' + in2)
+        const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1 + '&id2=' + in2)
+
+        Promise.all([pUser1, pUser2, pCommonFriends])
+            .then(responses =>
+                Promise.all(responses.map(res => res.json()))
+            ).then(data => {
+                console.log(data)
+                if (data[0].status != "success" || data[1].status != "success" || data[2].status != "success") {
+                    console.log("steam api error!")
+                } else {
+                    const cy = initCytoscape()
+                    makeGraph(cy, data[0].data, data[1].data, data[2].data)
+                }
+                
+            })
+    })
+
     // patka = 76561197989862681
     // ehg = 76561197962845430
     // altix = 76561198136308086
-    const pUser1 = fetch('/steam/summary?id=76561197989862681')
-    const pUser2 = fetch('/steam/summary?id=76561197962845430')
-    const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
-
-    /*const pUser1 = fetch('/steam/summary?id=76561197989862681')
-    const pUser2 = fetch('/steam/summary?id=76561198136308086')
-    const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561198136308086')*/
-
-    Promise.all([pUser1, pUser2, pCommonFriends])
-        .then(responses =>
-            Promise.all(responses.map(res => res.json()))
-        ).then(data => {
-            const cy = initCytoscape()
-            makeGraph(cy, data[0].data, data[1].data, data[2].data)
-        })
+    // const pUser1 = fetch('/steam/summary?id=76561197989862681')
+    //const pUser2 = fetch('/steam/summary?id=76561197962845430')
+    //const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')    
 }
+
 
 function initCytoscape() {
     var cy = cytoscape({
