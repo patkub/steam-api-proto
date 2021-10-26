@@ -45,7 +45,9 @@ function initCytoscape() {
                 css: {
                     width: 50,
                     height: 50,
-                    'background-color':'#61bffc',
+                    // node text color
+                    color: '#fff',
+                    // usernames as node titles
                     content: 'data(id)'
                 }
                 
