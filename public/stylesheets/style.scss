@@ -1,17 +1,55 @@
 $cy-size: 300px;
+$blue-background: #1B2838;
+$blue-nav: #171A21;
+$blue-h1: #5EAFDE;
+$blue-input: #324965;
+$blue-input-border: #45566A;
+$blue-button: #264963;
+$blue-button-color: #6ABCF0;
 
 body {
-  padding: 0;
   margin: 0;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font-family: Arial, Helvetica, Verdana, sans-serif;
+  background-color: $blue-background;
 }
 
-a {
-  color: #00B7FF;
+nav {
+  width: 100%;
+  height: 100px;
+  background-color: $blue-nav;
 }
 
-#cy {
-  height: $cy-size;
-  width: $cy-size;
-  display: block;
+form {
+  margin: 25px;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  padding: 25px;
+  background-color: rgba(0, 0, 0, 0.2);
+
+  h1 {
+    margin: 0;
+    color: $blue-h1;
+    font-weight: 500;
+    font-size: 20px;
+  }
+
+  input, select {
+    padding: 5px;
+    border: 1px solid $blue-input-border;
+    background-color: $blue-input;
+    color: white;
+  }
+
+  button {
+    padding: 5px;
+    border: none;
+    background-color: $blue-button;
+    color: $blue-button-color;
+
+    &:hover {
+      cursor: pointer;
+      color: white;
+    }
+  }
 }
