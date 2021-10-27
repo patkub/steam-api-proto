@@ -177,14 +177,14 @@ router.get('/commonFriends', function(req, res, next) {
                     }
                 }
                 data.commonFriendIds = commonFriendIds
-        
+
                 // promises to get summaries of common friends
                 const pCommonFriendSummaries = []
                 for (const f of commonFriendIds) {
                     const pSummary = steam.getUserSummary(f)
                     pCommonFriendSummaries.push(pSummary)
                 }
-        
+
                 Promise.all(pCommonFriendSummaries).then((commonFriends) => {
                     // add common friend data to reply
                     data.commonFriends = commonFriends
@@ -360,6 +360,48 @@ router.get('/commonGroups', function(req, res, next) {
         })
     }
 
+});
+
+router.post('/games', function(req, res, next) {
+    const data = {
+        // steam ids of common friends
+        commonGameIds: [],
+        // common friend data
+        commonGames: []
+    }
+
+    // get steam ids as query parameters
+    const ids = req.body;
+    var promises = [];
+    for (var id of ids) {
+        promises.push(steam.get(util.format("/IPlayerService/GetOwnedGames/v0001/?steamid=%s&include_appinfo=1&include_played_free_games=1&format=json", id)));
+    }
+
+    var gameDictionary = {};
+    var privateGames = [];
+    Promise.all(promises).then((games) => {
+        console.log(games);
+        for (var i = 0; i < games.length; i++) {
+            var id = ids[i];
+            var response = games[i].response;
+            if ("games" in response) {
+                for (var game of response.games) {
+                    if (!(game.name in gameDictionary)) {
+                        gameDictionary[game.name] = [];
+                    }
+                    gameDictionary[game.name].push(id);
+                }
+            } else {
+                privateGames.push(id);
+            }
+        }
+
+        return res.status(200).json({
+            status: "success",
+            gameDictionary: gameDictionary,
+            privateGames: privateGames,
+        })
+    });
 });
 
 module.exports = router;

@@ -20,10 +20,34 @@ window.onload = function() {
                 if (data[0].status != "success" || data[1].status != "success" || data[2].status != "success") {
                     console.log("steam api error!")
                 } else {
+                    // get all the games that every plays
+
+                    var ids = [];
+                    ids.push(in1);
+                    ids.push(in2);
+                    for (var id of data[2].data.commonFriendIds) {
+                        ids.push(id);
+                    }
+
+
+                    fetch('/steam/games', {
+                        method: 'POST', // or 'PUT'
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(ids),
+                        })
+                        .then(response => response.json())
+                        .then(data2 => {
+                            console.log('Success:', data2);
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                    });
+
                     const cy = initCytoscape()
                     makeGraph(cy, data[0].data, data[1].data, data[2].data)
                 }
-                
             })
     })
 
@@ -32,7 +56,7 @@ window.onload = function() {
     // altix = 76561198136308086
     // const pUser1 = fetch('/steam/summary?id=76561197989862681')
     //const pUser2 = fetch('/steam/summary?id=76561197962845430')
-    //const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')    
+    //const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
 }
 
 
@@ -48,9 +72,9 @@ function initCytoscape() {
                     // node text color
                     color: '#fff',
                     // usernames as node titles
-                    content: 'data(id)'
+                    content: 'data(name)',
                 }
-                
+
             }
         ],
         layout: {
@@ -69,34 +93,34 @@ function makeGraph(cy, user1, user2, commonFriends) {
     cy.add({
         group: 'nodes',
         data: {
-            id: user1Summary.nickname,
+            id: user1Summary.steamID,
             name: user1Summary.nickname
         },
     });
     cy.add({
         group: 'nodes',
         data: {
-            id: user2Summary.nickname,
+            id: user2Summary.steamID,
             name: user2Summary.nickname
         },
     });
-    cy.nodes('[id = "' + user1Summary.nickname + '"]').style({
+    cy.nodes('[id = "' + user1Summary.steamID + '"]').style({
         'background-image': user1Summary.avatar.medium
     })
-    cy.nodes('[id = "' + user2Summary.nickname + '"]').style({
+    cy.nodes('[id = "' + user2Summary.steamID + '"]').style({
         'background-image': user2Summary.avatar.medium
     })
     for (const friend of commonFriends.commonFriends) {
         // friend.avatar.medium
         var eles = cy.add([
             // add common friend node
-            { group: 'nodes', data: { id: friend.nickname, name: friend.nickname } },
+            { group: 'nodes', data: { id: friend.steamID, name: friend.nickname } },
             // from id1 to friend
-            { group: 'edges', data: { id: 'e1_' + friend.nickname, source: user1Summary.nickname, target: friend.nickname } },
+            { group: 'edges', data: { id: 'e1_' + friend.steamID, source: user1Summary.steamID, target: friend.steamID } },
             // from friend to id2
-            { group: 'edges', data: { id: 'e2_' + friend.nickname, source: friend.nickname, target: user2Summary.nickname } }
+            { group: 'edges', data: { id: 'e2_' + friend.steamID, source: friend.steamID, target: user2Summary.steamID } }
         ]);
-        cy.nodes('[id = "' + friend.nickname + '"]').style({
+        cy.nodes('[id = "' + friend.steamID + '"]').style({
             'background-image': friend.avatar.medium
         });
     }
