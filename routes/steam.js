@@ -397,10 +397,12 @@ router.get('/commonGroups', function(req, res) {
 // Input: Body: array of steam ids [id1, id2]
 router.post('/games', function(req, res) {
 
-    // get steam ids as query parameters
+    // get steam ids as body parameters
     const ids = req.body;
     var promises = [];
     for (var id of ids) {
+        // custom request to /IPlayerService/GetOwnedGames in order to include free-to-play games such as tf2, csgo, etc.
+        // steam.getUserOwnedGames only includes paid games and has no input options
         promises.push(steam.get(util.format("/IPlayerService/GetOwnedGames/v0001/?steamid=%s&include_appinfo=1&include_played_free_games=1&format=json", id)));
     }
 
