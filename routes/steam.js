@@ -453,7 +453,10 @@ router.post('/games', function(req, res) {
                         if (!(game.name in gameDictionary)) {
                             gameDictionary[game.name] = [];
                         }
-                        gameDictionary[game.name].push(id);
+                        // prevent duplicate ids per game
+                        if (!(id in gameDictionary[game.name])) {
+                            gameDictionary[game.name].push(id);
+                        }
                     }
                 } else {
                     privateGames.push(id);

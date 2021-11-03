@@ -5,22 +5,24 @@
 
 // cytoscape.js object
 window.cy = null;
+// global progress bar
+window.progressBar = null;
 
-window.onload = function() {
-
-    const progressBar = document.getElementById("progressBar");
+window.onload = () => {
+    // keep track of progress bar element
+    window.progressBar = document.getElementById("progressBar");
 
     /**
      * Button to generate graph
      */
     const btnGen = document.getElementById("btnGenerate")
-    btnGen.addEventListener("click", generateGraph())
+    btnGen.addEventListener("click", generateGraph)
 
     /**
      * Button to reset node highlighting
      */
     const btnReset = document.getElementById("btnResetHighlight")
-    btnReset.addEventListener("click", function(e) {
+    btnReset.addEventListener("click", (e) => {
         // unhighlight all nodes
         resetHighlight(window.cy)
     })
@@ -29,9 +31,9 @@ window.onload = function() {
      * Button to look up a user's steam id
      */
     const btnLookup = document.getElementById("btnLookup")
-    btnLookup.addEventListener("click", function(e) {
+    btnLookup.addEventListener("click", (e) => {
         // show progress bar
-        progressBar.style.visibility = 'visible';
+        window.progressBar.style.visibility = 'visible';
 
         const steamIdLookup = document.getElementById("steamIdLookup")
         const steamIdLookupOut = document.getElementById("steamIdLookupOut")
@@ -43,7 +45,7 @@ window.onload = function() {
             .then(res => res.json())
             .then(data => {
                 // hide progress bar
-                progressBar.style.visibility = 'hidden';
+                window.progressBar.style.visibility = 'hidden';
                 //console.log(data)
                 if (data.status == "success") {
                     steamIdLookupOut.value = data.id
@@ -51,105 +53,120 @@ window.onload = function() {
                     steamIdLookupOut.value = data.message
                 }
             })
+            .catch((error) => {
+                console.error('Error:', error);
+                // hide progress bar
+                window.progressBar.style.visibility = 'hidden';
+            });
     })
-    
-    /**
-     * Generate graph
-     */
-    function generateGraph() {
-        // show progress bar
-        progressBar.style.visibility = 'visible';
 
-        // get input
-        const in1 = document.getElementById("id1").value
-        const in2 = document.getElementById("id2").value
+    // generate graph on page load
+    generateGraph()
+}
 
-        // url encoded input
-        const in1Url = encodeURIComponent(in1)
-        const in2Url = encodeURIComponent(in2)
+/**
+ * Generate graph
+ */
+function generateGraph() {
+    // show progress bar
+    window.progressBar.style.visibility = 'visible';
 
-        // asynchronous requests to steam api proxy
-        const pUser1 = fetch('/steam/summary?id=' + in1Url)
-        const pUser2 = fetch('/steam/summary?id=' + in2Url)
-        const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1Url + '&id2=' + in2Url)
+    // get input
+    const in1 = document.getElementById("id1").value
+    const in2 = document.getElementById("id2").value
 
-        Promise.all([pUser1, pUser2, pCommonFriends])
-            .then(responses =>
-                Promise.all(responses.map(res => res.json()))
-            ).then(data => {
-                //console.log(data)
-                if (data[0].status != "success" || data[1].status != "success" || data[2].status != "success") {
-                    console.log("steam api error!")
-                    // hide progress bar
-                    progressBar.style.visibility = 'hidden';
-                } else {
-                    // get all the games that every plays
+    // url encoded input
+    const in1Url = encodeURIComponent(in1)
+    const in2Url = encodeURIComponent(in2)
 
-                    var ids = [];
-                    ids.push(data[2].data.id1);
-                    ids.push(data[2].data.id2);
-                    for (var id of data[2].data.commonFriendIds) {
-                        ids.push(id);
-                    }
+    // asynchronous requests to steam api proxy
+    const pUser1 = fetch('/steam/summary?id=' + in1Url)
+    const pUser2 = fetch('/steam/summary?id=' + in2Url)
+    const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1Url + '&id2=' + in2Url)
 
-                    window.cy = initCytoscape()
-                    makeGraph(window.cy, data[0].data, data[1].data, data[2].data)
+    Promise.all([pUser1, pUser2, pCommonFriends])
+        .then(responses =>
+            Promise.all(responses.map(res => res.json()))
+        ).then(data => {
+            //console.log(data)
+            if (data[0].status != "success" || data[1].status != "success" || data[2].status != "success") {
+                console.log("steam api error!")
+                // hide progress bar
+                window.progressBar.style.visibility = 'hidden';
+            } else {
+                // get all the games that every plays
 
-                    fetch('/steam/games', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(ids),
-                    })
-                        .then(response => response.json())
-                        .then(data2 => {
-                            //console.log('Success:', data2);
-                            var select = document.getElementById("game");
+                var ids = [];
+                ids.push(data[2].data.id1);
+                ids.push(data[2].data.id2);
+                for (var id of data[2].data.commonFriendIds) {
+                    ids.push(id);
+                }
 
-                            // reset select dropdown options
-                            select.options.length = 0;
+                window.cy = initCytoscape()
+                makeGraph(window.cy, data[0].data, data[1].data, data[2].data)
 
-                            // games that at least 2 people play
-                            let filteredGames = Object.entries(data2.gameDictionary)
-                                .filter(([key, val]) => val.length > 1)
+                fetch('/steam/games', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(ids),
+                })
+                    .then(response => response.json())
+                    .then(data2 => {
+                        //console.log('Success:', data2);
+                        var select = document.getElementById("game");
 
-                            // add games to dropdown
-                            for (const [key, value] of filteredGames) {
-                                //console.log(key, value);
-                                var option = document.createElement("OPTION")
-                                option.text = key;
-                                option.value = key;
-                                select.appendChild(option);
-                            }
+                        // reset select dropdown options
+                        select.options.length = 0;
 
-                            // on select dropdown change
-                            select.addEventListener('change', (event) => {
-                                // steam ids of people who play this game
-                                var selectIds = data2.gameDictionary[event.target.value]
+                        // games that at least 2 people play
+                        let filteredGames = Object.entries(data2.gameDictionary)
+                            .filter(([key, val]) => val.length > 1)
+                        //console.log(filteredGames)
+                        //76561197989862681
+                        //76561198034620529
 
-                                // unhighlight all nodes
-                                resetHighlight(window.cy)
+                        // add games to dropdown
+                        for (const [key, value] of filteredGames) {
+                            //console.log(key, value);
+                            var option = document.createElement("OPTION")
+                            option.text = key;
+                            option.value = key;
+                            select.appendChild(option);
+                        }
 
-                                // highlight nodes
-                                selectIds.forEach(id => {
-                                    window.cy.nodes('[id = "' + id + '"]').addClass("highlight");
-                                });
+                        // on select dropdown change
+                        select.addEventListener('change', (event) => {
+                            // steam ids of people who play this game
+                            var selectIds = data2.gameDictionary[event.target.value]
+
+                            // unhighlight all nodes
+                            resetHighlight(window.cy)
+
+                            // highlight nodes
+                            selectIds.forEach(id => {
+                                window.cy.nodes('[id = "' + id + '"]').addClass("highlight");
                             });
-
-                            // hide progress bar
-                            progressBar.style.visibility = 'hidden';
-                        })
-                        .catch((error) => {
-                            console.error('Error:', error);
-                            // hide progress bar
-                            progressBar.style.visibility = 'hidden';
                         });
 
-                } // end of else
+                        // hide progress bar
+                        window.progressBar.style.visibility = 'hidden';
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                        // hide progress bar
+                        window.progressBar.style.visibility = 'hidden';
+                    });
 
-            }) // end of promises
-    }
+            } // end of else
+
+        }).catch((error) => {
+            console.error('Error:', error);
+            // hide progress bar
+            window.progressBar.style.visibility = 'hidden';
+        });
 }
 
 /**
