@@ -3,23 +3,72 @@
 // ehg = 76561197962845430
 // altix = 76561198136308086
 
+// cytoscape.js object
 window.cy = null;
 
 window.onload = function() {
 
-    var progressBar = document.getElementById("progressBar");
+    const progressBar = document.getElementById("progressBar");
 
-    var btnGen = document.getElementById("btnGenerate")
-    btnGen.addEventListener("click", function(e) {
+    /**
+     * Button to generate graph
+     */
+    const btnGen = document.getElementById("btnGenerate")
+    btnGen.addEventListener("click", generateGraph())
+
+    /**
+     * Button to reset node highlighting
+     */
+    const btnReset = document.getElementById("btnResetHighlight")
+    btnReset.addEventListener("click", function(e) {
+        // unhighlight all nodes
+        resetHighlight(window.cy)
+    })
+
+    /**
+     * Button to look up a user's steam id
+     */
+    const btnLookup = document.getElementById("btnLookup")
+    btnLookup.addEventListener("click", function(e) {
         // show progress bar
         progressBar.style.visibility = 'visible';
 
-        var in1 = document.getElementById("id1").value
-        var in2 = document.getElementById("id2").value
+        const steamIdLookup = document.getElementById("steamIdLookup")
+        const steamIdLookupOut = document.getElementById("steamIdLookupOut")
 
-        in1Url = encodeURIComponent(in1)
-        in2Url = encodeURIComponent(in2)
+        // asynchronous request to steam api proxy
+        const steamid = steamIdLookup.value;
+        const pLookup = fetch('/steam/id?id=' + encodeURIComponent(steamid))
+        pLookup
+            .then(res => res.json())
+            .then(data => {
+                // hide progress bar
+                progressBar.style.visibility = 'hidden';
+                //console.log(data)
+                if (data.status == "success") {
+                    steamIdLookupOut.value = data.id
+                } else if (data.status == "error") {
+                    steamIdLookupOut.value = data.message
+                }
+            })
+    })
+    
+    /**
+     * Generate graph
+     */
+    function generateGraph() {
+        // show progress bar
+        progressBar.style.visibility = 'visible';
 
+        // get input
+        const in1 = document.getElementById("id1").value
+        const in2 = document.getElementById("id2").value
+
+        // url encoded input
+        const in1Url = encodeURIComponent(in1)
+        const in2Url = encodeURIComponent(in2)
+
+        // asynchronous requests to steam api proxy
         const pUser1 = fetch('/steam/summary?id=' + in1Url)
         const pUser2 = fetch('/steam/summary?id=' + in2Url)
         const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1Url + '&id2=' + in2Url)
@@ -28,7 +77,7 @@ window.onload = function() {
             .then(responses =>
                 Promise.all(responses.map(res => res.json()))
             ).then(data => {
-                console.log(data)
+                //console.log(data)
                 if (data[0].status != "success" || data[1].status != "success" || data[2].status != "success") {
                     console.log("steam api error!")
                     // hide progress bar
@@ -55,7 +104,7 @@ window.onload = function() {
                     })
                         .then(response => response.json())
                         .then(data2 => {
-                            console.log('Success:', data2);
+                            //console.log('Success:', data2);
                             var select = document.getElementById("game");
 
                             // reset select dropdown options
@@ -100,48 +149,13 @@ window.onload = function() {
                 } // end of else
 
             }) // end of promises
-
-    }) // end of generate button
-
-    /**
-     * Button to reset node highlighting
-     */
-    var btnReset = document.getElementById("btnResetHighlight")
-    btnReset.addEventListener("click", function(e) {
-        // unhighlight all nodes
-        resetHighlight(window.cy)
-    })
-
-    /**
-     * Button to look up a user's steam id
-     */
-    var btnLookup = document.getElementById("btnLookup")
-    btnLookup.addEventListener("click", function(e) {
-        // show progress bar
-        progressBar.style.visibility = '';
-
-        var steamIdLookup = document.getElementById("steamIdLookup")
-        var steamIdLookupOut = document.getElementById("steamIdLookupOut")
-
-        var steamid = steamIdLookup.value;
-        const pLookup = fetch('/steam/id?id=' + encodeURIComponent(steamid))
-        pLookup
-            .then(res => res.json())
-            .then(data => {
-                // hide progress bar
-                progressBar.style.visibility = 'hidden';
-                console.log(data)
-                if (data.status == "success") {
-                    steamIdLookupOut.value = data.id
-                } else if (data.status == "error") {
-                    steamIdLookupOut.value = data.message
-                }
-            })
-    })
-
+    }
 }
 
-
+/**
+ * Initialize cytoscape
+ * @return {Cytoscape} cytoscape instance
+ */
 function initCytoscape() {
     var cy = cytoscape({
         container: document.getElementById('cy'),
@@ -182,9 +196,19 @@ function initCytoscape() {
     return cy
 }
 
+/**
+ * Make graph
+ * @param {Cytoscape} cy cytoscape object
+ * @param {Object} user1 data from /steam/summary for id1
+ * @param {Object} user2 data from /steam/summary for id2
+ * @param {Object} commonFriends data from /steam/commonFriends for id1 and id2
+ */
 function makeGraph(cy, user1, user2, commonFriends) {
+    // get user summaries
     const user1Summary = user1.summary
     const user2Summary = user2.summary
+
+    // add user nodes
     cy.add({
         group: 'nodes',
         data: {
@@ -199,14 +223,17 @@ function makeGraph(cy, user1, user2, commonFriends) {
             name: user2Summary.nickname
         },
     });
+
+    // set user background images
     cy.nodes('[id = "' + user1Summary.steamID + '"]').style({
         'background-image': user1Summary.avatar.medium
     })
     cy.nodes('[id = "' + user2Summary.steamID + '"]').style({
         'background-image': user2Summary.avatar.medium
     })
+
     for (const friend of commonFriends.commonFriends) {
-        // friend.avatar.medium
+        // add common friend nodes and edges
         cy.add([
             // add common friend node
             { group: 'nodes', data: { id: friend.steamID, name: friend.nickname } },
@@ -215,14 +242,19 @@ function makeGraph(cy, user1, user2, commonFriends) {
             // from friend to id2
             { group: 'edges', data: { id: 'e2_' + friend.steamID, source: friend.steamID, target: user2Summary.steamID } }
         ]);
+
+        // set friend background images
         cy.nodes('[id = "' + friend.steamID + '"]').style({
             'background-image': friend.avatar.medium
         });
     }
 }
 
+/**
+ * Unhighlight all nodes
+ * @param {Cytoscape} cy cytoscape object
+ */
 function resetHighlight(cy) {
     // unhighlight all nodes
     cy.nodes('*').removeClass("highlight");
 }
-
