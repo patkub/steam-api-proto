@@ -1,3 +1,5 @@
+
+
 window.onload = function() {
 
     var btn = document.getElementById("btnGenerate")
@@ -40,6 +42,13 @@ window.onload = function() {
                         .then(response => response.json())
                         .then(data2 => {
                             console.log('Success:', data2);
+                            var select = document.getElementById("game");
+                            for (const [key, value] of Object.entries(data2.gameDictionary)) {
+                                console.log(key, value);
+                                var option = document.createElement("OPTION")
+                                option.innerHTML = key;
+                                select.appendChild(option);
+                              }
                         })
                         .catch((error) => {
                             console.error('Error:', error);
