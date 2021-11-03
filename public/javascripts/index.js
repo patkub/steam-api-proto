@@ -1,14 +1,13 @@
 
 
+window.cy = null;
+
 window.onload = function() {
 
-    var btn = document.getElementById("btnGenerate")
-    btn.addEventListener("click", function(e) {
-        //console.log("generate button clicked")
+    var btnGen = document.getElementById("btnGenerate")
+    btnGen.addEventListener("click", function(e) {
         var in1 = document.getElementById("id1").value
         var in2 = document.getElementById("id2").value
-        //console.log(in1)
-        //console.log(in2)
 
         const pUser1 = fetch('/steam/summary?id=' + in1)
         const pUser2 = fetch('/steam/summary?id=' + in2)
@@ -31,42 +30,62 @@ window.onload = function() {
                         ids.push(id);
                     }
 
-                    const cy = initCytoscape()
-                    makeGraph(cy, data[0].data, data[1].data, data[2].data)
+                    window.cy = initCytoscape()
+                    makeGraph(window.cy, data[0].data, data[1].data, data[2].data)
 
                     fetch('/steam/games', {
-                        method: 'POST', // or 'PUT'
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify(ids),
-                        })
+                    })
                         .then(response => response.json())
                         .then(data2 => {
                             console.log('Success:', data2);
                             var select = document.getElementById("game");
-                            for (const [key, value] of Object.entries(data2.gameDictionary)) {
+
+                            // games that at least 2 people play
+                            let filteredGames = Object.entries(data2.gameDictionary)
+                                .filter(([key, val]) => val.length > 1)
+
+                            // add games to dropdown
+                            for (const [key, value] of filteredGames) {
                                 console.log(key, value);
                                 var option = document.createElement("OPTION")
                                 option.text = key;
                                 option.value = key;
                                 select.appendChild(option);
-                              }
+                            }
+
+                            // on select dropdown change
                             select.addEventListener('change', (event) => {
-                            console.log(event.target.value);
-                            var selectIds = data2.gameDictionary[event.target.value]
-                            selectIds.forEach(element => {
-                                cy.nodes('[id = "' + element + '"]').addClass("highlight");
-                            });
+                                // steam ids of people who play this game
+                                var selectIds = data2.gameDictionary[event.target.value]
+
+                                // unhighlight all nodes
+                                resetHighlight(window.cy)
+
+                                // highlight nodes
+                                selectIds.forEach(id => {
+                                    window.cy.nodes('[id = "' + id + '"]').addClass("highlight");
+                                });
                             });
                         })
                         .catch((error) => {
                             console.error('Error:', error);
-                    });
-                    
-                    
-                }
-            })
+                        });
+
+                } // end of else
+
+            }) // end of promises
+
+    }) // end of generate button
+
+    var btnReset = document.getElementById("btnResetHighlight")
+    btnReset.addEventListener("click", function(e) {
+        // unhighlight all nodes
+        resetHighlight(window.cy)
     })
 
     // patka = 76561197989862681
@@ -92,8 +111,20 @@ function initCytoscape() {
                     // usernames as node titles
                     content: 'data(name)',
                 }
-                
-
+            },
+            // cytoscape style classes need to be defined here, not in an external stylesheet
+            {
+                selector: ".highlight",
+                css: {
+                    // https://github.com/cytoscape/cytoscape.js/issues/2018
+                    // short-hand border property does not work
+                    "border-color": "#FF1493", // pink
+                    "border-width": "2px",
+                    "border-style": "solid",
+                    // custom cytoscape styles
+                    "text-outline-width": "2px",
+                    "text-outline-color": "#FF1493", // pink
+                }
             }
         ],
         layout: {
@@ -131,7 +162,7 @@ function makeGraph(cy, user1, user2, commonFriends) {
     })
     for (const friend of commonFriends.commonFriends) {
         // friend.avatar.medium
-        var eles = cy.add([
+        cy.add([
             // add common friend node
             { group: 'nodes', data: { id: friend.steamID, name: friend.nickname } },
             // from id1 to friend
@@ -144,3 +175,9 @@ function makeGraph(cy, user1, user2, commonFriends) {
         });
     }
 }
+
+function resetHighlight(cy) {
+    // unhighlight all nodes
+    cy.nodes('*').removeClass("highlight");
+}
+

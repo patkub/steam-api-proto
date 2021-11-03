@@ -380,7 +380,7 @@ router.post('/games', function(req, res, next) {
     var gameDictionary = {};
     var privateGames = [];
     Promise.all(promises).then((games) => {
-        console.log(games);
+        //console.log(games);
         for (var i = 0; i < games.length; i++) {
             var id = ids[i];
             var response = games[i].response;
