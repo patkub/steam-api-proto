@@ -27,7 +27,7 @@ nav {
   background-color: rgba(0, 0, 0, 0.2);
 
   h1 {
-    margin: 0;
+    margin: 0 0 0.5em 0;
     color: $blue-h1;
     font-weight: 500;
     font-size: 20px;
@@ -35,6 +35,7 @@ nav {
 
   input, select {
     padding: 5px;
+    margin-bottom: 1em;
     border: 1px solid $blue-input-border;
     background-color: $blue-input;
     color: white;
