@@ -1,11 +1,18 @@
-
+// patka = 76561197989862681
+// ehg = 76561197962845430
+// altix = 76561198136308086
 
 window.cy = null;
 
 window.onload = function() {
 
+    var progressBar = document.getElementById("progressBar");
+
     var btnGen = document.getElementById("btnGenerate")
     btnGen.addEventListener("click", function(e) {
+        // show progress bar
+        progressBar.style.visibility = 'visible';
+
         var in1 = document.getElementById("id1").value
         var in2 = document.getElementById("id2").value
 
@@ -20,6 +27,8 @@ window.onload = function() {
                 console.log(data)
                 if (data[0].status != "success" || data[1].status != "success" || data[2].status != "success") {
                     console.log("steam api error!")
+                    // hide progress bar
+                    progressBar.style.visibility = 'hidden';
                 } else {
                     // get all the games that every plays
 
@@ -44,6 +53,9 @@ window.onload = function() {
                         .then(data2 => {
                             console.log('Success:', data2);
                             var select = document.getElementById("game");
+
+                            // reset select dropdown options
+                            select.options.length = 0;
 
                             // games that at least 2 people play
                             let filteredGames = Object.entries(data2.gameDictionary)
@@ -71,9 +83,14 @@ window.onload = function() {
                                     window.cy.nodes('[id = "' + id + '"]').addClass("highlight");
                                 });
                             });
+
+                            // hide progress bar
+                            progressBar.style.visibility = 'hidden';
                         })
                         .catch((error) => {
                             console.error('Error:', error);
+                            // hide progress bar
+                            progressBar.style.visibility = 'hidden';
                         });
 
                 } // end of else
@@ -88,12 +105,6 @@ window.onload = function() {
         resetHighlight(window.cy)
     })
 
-    // patka = 76561197989862681
-    // ehg = 76561197962845430
-    // altix = 76561198136308086
-    // const pUser1 = fetch('/steam/summary?id=76561197989862681')
-    //const pUser2 = fetch('/steam/summary?id=76561197962845430')
-    //const pCommonFriends = fetch('/steam/commonFriends?id1=76561197989862681&id2=76561197962845430')
 }
 
 
