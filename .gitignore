@@ -128,10 +128,12 @@ dist
 public/stylesheets/*.css
 public/stylesheets/*.css.map
 
+# steam api key
 steam_key
 config.js
-database.sqlite3
-game-data-1.json
-user-owned-games.json
-user1.json
-user2.json
+
+# example auto generated data
+examples/game-data-1.json
+examples/user-owned-games.json
+examples/user1.json
+examples/user2.json

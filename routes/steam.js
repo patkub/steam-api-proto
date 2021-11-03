@@ -22,15 +22,6 @@ const xml2js = require('xml2js')
 const SteamAPI = require("steamapi")
 const steam = new SteamAPI(STEAM_API_KEY)
 
-// for data storage
-// https://stackabuse.com/a-sqlite-tutorial-with-node-js/
-const AppDAO = require('../dao/dao')
-const DataRepository = require("../dao/data-repository")
-
-// setup the database
-const dao = new AppDAO('./database.sqlite3', false /* trace for debugging */)
-const dataRepo = new DataRepository(dao)
-
 /* GET steam listing. */
 router.get('/', function(req, res, next) {
     return res.status(200).json({

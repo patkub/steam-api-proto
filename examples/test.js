@@ -6,7 +6,8 @@
 // a nodejs wrapper that has part of the data
 // https://www.npmjs.com/package/steamapi
 
-const STEAM_API_KEY = "YOUR_API_KEY_HERE"
+const config = require('../config');
+const STEAM_API_KEY = config.STEAM_API_KEY
 
 const Promise = require('bluebird')
 const exit = require("process").exit;
@@ -16,55 +17,9 @@ const util = require("util")
 const axios = require('axios')
 const xml2js = require('xml2js')
 
-// for data storage
-// https://stackabuse.com/a-sqlite-tutorial-with-node-js/
-const AppDAO = require('./dao/dao')
-const DataRepository = require("./dao/data-repository")
-
-// setup the database
-const dao = new AppDAO('./database.sqlite3', false /* trace for debugging */)
-const dataRepo = new DataRepository(dao)
-
 // Steam API
 const SteamAPI = require("steamapi")
 const steam = new SteamAPI(STEAM_API_KEY)
-
-
-// Example sqlite3 database
-var dataId;
-dataRepo.createTable()
-    .then(() => {
-        console.log("Creating data...")
-        // need to return here so next then function has the data
-        return dataRepo.create("what")
-    })
-    .then((info) => {
-        console.log("Returned inserted id:")
-        console.log(info)
-        // keep track of inserted id
-        dataId = info.id
-    })
-    .then(() => {
-        // need to return here so next then function has the data
-        return dataRepo.getById(dataId)
-    })
-    .then((data) => {
-        console.log("Got data back:")
-        console.log(data)
-    })
-    .then(() => {
-        // get all data, again need to return
-        return dataRepo.getAll()
-    })
-    .then((data2) => {
-        console.log("Got all data back:")
-        console.log(data2)
-    })
-    .catch((err) => {
-        // error handler
-        console.log('Error: ')
-        console.log(JSON.stringify(err))
-    })
 
 
 // https://steamcommunity.com/id/patka
