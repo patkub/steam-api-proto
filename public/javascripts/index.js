@@ -31,6 +31,8 @@ window.onload = function() {
                         ids.push(id);
                     }
 
+                    const cy = initCytoscape()
+                    makeGraph(cy, data[0].data, data[1].data, data[2].data)
 
                     fetch('/steam/games', {
                         method: 'POST', // or 'PUT'
@@ -46,16 +48,23 @@ window.onload = function() {
                             for (const [key, value] of Object.entries(data2.gameDictionary)) {
                                 console.log(key, value);
                                 var option = document.createElement("OPTION")
-                                option.innerHTML = key;
+                                option.text = key;
+                                option.value = key;
                                 select.appendChild(option);
                               }
+                            select.addEventListener('change', (event) => {
+                            console.log(event.target.value);
+                            var selectIds = data2.gameDictionary[event.target.value]
+                            selectIds.forEach(element => {
+                                cy.nodes('[id = "' + element + '"]').addClass("highlight");
+                            });
+                            });
                         })
                         .catch((error) => {
                             console.error('Error:', error);
                     });
-
-                    const cy = initCytoscape()
-                    makeGraph(cy, data[0].data, data[1].data, data[2].data)
+                    
+                    
                 }
             })
     })
@@ -83,6 +92,7 @@ function initCytoscape() {
                     // usernames as node titles
                     content: 'data(name)',
                 }
+                
 
             }
         ],
