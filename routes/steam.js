@@ -130,7 +130,7 @@ router.get('/summary', function(req, res, next) {
     }
 }
 */
-router.get('/commonFriends', function(req, res, next) {
+router.get('/commonFriends', function(req, res) {
 
     const data = {
         // steam ids of common friends
@@ -257,7 +257,7 @@ router.get('/commonFriends', function(req, res, next) {
     }
 }
 */
-router.get('/commonGroups', function(req, res, next) {
+router.get('/commonGroups', function(req, res) {
 
     const data = {
         // group ids of common groups
@@ -353,13 +353,7 @@ router.get('/commonGroups', function(req, res, next) {
 
 });
 
-router.post('/games', function(req, res, next) {
-    const data = {
-        // steam ids of common friends
-        commonGameIds: [],
-        // common friend data
-        commonGames: []
-    }
+router.post('/games', function(req, res) {
 
     // get steam ids as query parameters
     const ids = req.body;
@@ -368,31 +362,40 @@ router.post('/games', function(req, res, next) {
         promises.push(steam.get(util.format("/IPlayerService/GetOwnedGames/v0001/?steamid=%s&include_appinfo=1&include_played_free_games=1&format=json", id)));
     }
 
-    var gameDictionary = {};
-    var privateGames = [];
-    Promise.all(promises).then((games) => {
-        //console.log(games);
-        for (var i = 0; i < games.length; i++) {
-            var id = ids[i];
-            var response = games[i].response;
-            if ("games" in response) {
-                for (var game of response.games) {
-                    if (!(game.name in gameDictionary)) {
-                        gameDictionary[game.name] = [];
+    try {
+        var gameDictionary = {};
+        var privateGames = [];
+        Promise.all(promises).then((games) => {
+            //console.log(games);
+            for (var i = 0; i < games.length; i++) {
+                var id = ids[i];
+                var response = games[i].response;
+                if ("games" in response) {
+                    for (var game of response.games) {
+                        if (!(game.name in gameDictionary)) {
+                            gameDictionary[game.name] = [];
+                        }
+                        gameDictionary[game.name].push(id);
                     }
-                    gameDictionary[game.name].push(id);
+                } else {
+                    privateGames.push(id);
                 }
-            } else {
-                privateGames.push(id);
             }
-        }
 
-        return res.status(200).json({
-            status: "success",
-            gameDictionary: gameDictionary,
-            privateGames: privateGames,
+            return res.status(200).json({
+                status: "success",
+                gameDictionary: gameDictionary,
+                privateGames: privateGames,
+            })
+        });
+    } catch (error) {
+        // error getting games
+        return res.status(500).json({
+            status: "error",
+            message: error,
         })
-    });
+    }
+    
 });
 
 module.exports = router;

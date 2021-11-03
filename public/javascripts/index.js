@@ -63,7 +63,7 @@ window.onload = function() {
 
                             // add games to dropdown
                             for (const [key, value] of filteredGames) {
-                                console.log(key, value);
+                                //console.log(key, value);
                                 var option = document.createElement("OPTION")
                                 option.text = key;
                                 option.value = key;
