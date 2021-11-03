@@ -17,9 +17,12 @@ window.onload = function() {
         var in1 = document.getElementById("id1").value
         var in2 = document.getElementById("id2").value
 
-        const pUser1 = fetch('/steam/summary?id=' + in1)
-        const pUser2 = fetch('/steam/summary?id=' + in2)
-        const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1 + '&id2=' + in2)
+        in1Url = encodeURIComponent(in1)
+        in2Url = encodeURIComponent(in2)
+
+        const pUser1 = fetch('/steam/summary?id=' + in1Url)
+        const pUser2 = fetch('/steam/summary?id=' + in2Url)
+        const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1Url + '&id2=' + in2Url)
 
         Promise.all([pUser1, pUser2, pCommonFriends])
             .then(responses =>
@@ -34,8 +37,8 @@ window.onload = function() {
                     // get all the games that every plays
 
                     var ids = [];
-                    ids.push(in1);
-                    ids.push(in2);
+                    ids.push(data[2].data.id1);
+                    ids.push(data[2].data.id2);
                     for (var id of data[2].data.commonFriendIds) {
                         ids.push(id);
                     }
@@ -100,10 +103,40 @@ window.onload = function() {
 
     }) // end of generate button
 
+    /**
+     * Button to reset node highlighting
+     */
     var btnReset = document.getElementById("btnResetHighlight")
     btnReset.addEventListener("click", function(e) {
         // unhighlight all nodes
         resetHighlight(window.cy)
+    })
+
+    /**
+     * Button to look up a user's steam id
+     */
+    var btnLookup = document.getElementById("btnLookup")
+    btnLookup.addEventListener("click", function(e) {
+        // show progress bar
+        progressBar.style.visibility = '';
+
+        var steamIdLookup = document.getElementById("steamIdLookup")
+        var steamIdLookupOut = document.getElementById("steamIdLookupOut")
+
+        var steamid = steamIdLookup.value;
+        const pLookup = fetch('/steam/id?id=' + encodeURIComponent(steamid))
+        pLookup
+            .then(res => res.json())
+            .then(data => {
+                // hide progress bar
+                progressBar.style.visibility = 'hidden';
+                console.log(data)
+                if (data.status == "success") {
+                    steamIdLookupOut.value = data.id
+                } else if (data.status == "error") {
+                    steamIdLookupOut.value = data.message
+                }
+            })
     })
 
 }

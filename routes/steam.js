@@ -30,10 +30,55 @@ router.get('/', function(req, res, next) {
     })
 });
 
+// GET /steam/id
+// get the user's steam id 64 string
+// Produces: application/json
+// Input: QueryParams: id
+// i.e. http://localhost:3000/steam/id?id=76561197989862681
+// i.e. http://localhost:3000/steam/id?id=steamcommunity.com%2Fid%2Fpatka
+// Response json structure:
+/*
+{
+    "status": "success",
+    "id": "..."
+*/
+router.get('/id', function(req, res, next) {
+
+    const data = {}
+
+    try {
+        // get steam id as query parameters
+        const pId = steam.resolve(req.query.id)
+
+        pId.then((id) => {
+            // return user steam id
+            return res.status(200).json({
+                status: "success",
+                id: id,
+            })
+        })
+        .catch((reason) => {
+            // error getting user's steam id
+            return res.status(404).json({
+                status: "error",
+                message: reason.message,
+            })
+        })
+    } catch (error) {
+        // error getting user's steam id
+        return res.status(500).json({
+            status: "error",
+            message: error,
+        })
+    }
+
+});
+
 // GET /steam/summary
 // Produces: application/json
 // Input: QueryParams: id
 // i.e. http://localhost:3000/steam/summary?id=76561197989862681
+// i.e. http://localhost:3000/steam/summary?id=steamcommunity.com%2Fid%2Fpatka
 // Response json structure:
 /*
 {
@@ -64,20 +109,29 @@ router.get('/summary', function(req, res, next) {
 
     const data = {}
 
-    // get steam id as query parameters
-    const id = req.query.id
-
     try {
-        // get user summary
-        const pSummary = steam.getUserSummary(id)
+        // get steam id as query parameters
+        const pId = steam.resolve(req.query.id)
 
-        pSummary.then((summary) => {
-            //...
-            data.summary = summary
-            // return summary data
-            return res.status(200).json({
-                status: "success",
-                data: data,
+        pId.then((id) => {
+            // get user summary
+            const pSummary = steam.getUserSummary(id)
+
+            pSummary.then((summary) => {
+                //...
+                data.summary = summary
+                // return summary data
+                return res.status(200).json({
+                    status: "success",
+                    data: data,
+                })
+            })
+            .catch((reason) => {
+                // error getting user summary
+                return res.status(404).json({
+                    status: "error",
+                    message: reason.message,
+                })
             })
         })
         .catch((reason) => {
@@ -101,6 +155,7 @@ router.get('/summary', function(req, res, next) {
 // Produces: application/json
 // Input: QueryParams: id1, id2
 // i.e. http://localhost:3000/steam/commonFriends?id1=76561197989862681&id2=76561197962845430
+// i.e. http://localhost:3000/steam/commonFriends?id1=steamcommunity.com%2Fid%2Fpatka&id2=76561198034620529
 // Response json structure:
 /*
 {
@@ -139,59 +194,78 @@ router.get('/commonFriends', function(req, res) {
         commonFriends: []
     }
 
-    // get steam ids as query parameters
-    const id1 = req.query.id1
-    const id2 = req.query.id2
-
     try {
-        // promises to get friends lists
-        const pId1Friends = steam.getUserFriends(id1)
-        const pId2Friends = steam.getUserFriends(id2)
-
+        // get steam ids as query parameters
+        // resolve input to steam id
+        const pId1 = steam.resolve(req.query.id1)
+        const pId2 = steam.resolve(req.query.id2)
         const pAll = [
-            pId1Friends,
-            pId2Friends
+            pId1,
+            pId2
         ]
-
         Promise.all(pAll)
-            .then((friends) => {
-                const friendList1 = friends[0]
-                const friendList2 = friends[1]
+            .then((ids) => {
+                // keep track of ids in data
+                data.id1 = ids[0]
+                data.id2 = ids[1]
 
-                // find steam ids of common friends between the two users
-                const commonFriendIds = []
-                for (const f1 of friendList1) {
-                    for (const f2 of friendList2) {
-                        if (f1.steamID == f2.steamID) {
-                            commonFriendIds.push(f1.steamID)
+                // promises to get friends lists
+                const pId1Friends = steam.getUserFriends(data.id1)
+                const pId2Friends = steam.getUserFriends(data.id2)
+
+                const pAll = [
+                    pId1Friends,
+                    pId2Friends
+                ]
+
+                Promise.all(pAll)
+                    .then((friends) => {
+                        const friendList1 = friends[0]
+                        const friendList2 = friends[1]
+
+                        // find steam ids of common friends between the two users
+                        const commonFriendIds = []
+                        for (const f1 of friendList1) {
+                            for (const f2 of friendList2) {
+                                if (f1.steamID == f2.steamID) {
+                                    commonFriendIds.push(f1.steamID)
+                                }
+                            }
                         }
-                    }
-                }
-                data.commonFriendIds = commonFriendIds
+                        data.commonFriendIds = commonFriendIds
 
-                // promises to get summaries of common friends
-                const pCommonFriendSummaries = []
-                for (const f of commonFriendIds) {
-                    const pSummary = steam.getUserSummary(f)
-                    pCommonFriendSummaries.push(pSummary)
-                }
+                        // promises to get summaries of common friends
+                        const pCommonFriendSummaries = []
+                        for (const f of commonFriendIds) {
+                            const pSummary = steam.getUserSummary(f)
+                            pCommonFriendSummaries.push(pSummary)
+                        }
 
-                Promise.all(pCommonFriendSummaries).then((commonFriends) => {
-                    // add common friend data to reply
-                    data.commonFriends = commonFriends
-                    // return common friend data
-                    return res.status(200).json({
-                        status: "success",
-                        data: data,
+                        Promise.all(pCommonFriendSummaries).then((commonFriends) => {
+                            // add common friend data to reply
+                            data.commonFriends = commonFriends
+                            // return common friend data
+                            return res.status(200).json({
+                                status: "success",
+                                data: data,
+                            })
+                        })
+                        .catch((reason) => {
+                            // error getting common friend summaries
+                            return res.status(404).json({
+                                status: "error",
+                                message: reason.message,
+                            })
+                        })
                     })
-                })
-                .catch((reason) => {
-                    // error getting common friend summaries
-                    return res.status(404).json({
-                        status: "error",
-                        message: reason.message,
+                    .catch((reason) => {
+                        // error getting friend lists
+                        return res.status(404).json({
+                            status: "error",
+                            message: reason.message,
+                        })
                     })
-                })
+
             })
             .catch((reason) => {
                 // error getting friend lists
@@ -200,6 +274,7 @@ router.get('/commonFriends', function(req, res) {
                     message: reason.message,
                 })
             })
+        
     } catch (error) {
         // error getting user summary
         return res.status(500).json({
@@ -353,6 +428,9 @@ router.get('/commonGroups', function(req, res) {
 
 });
 
+// POST /steam/games
+// Produces: application/json
+// Input: Body: array of steam ids [id1, id2]
 router.post('/games', function(req, res) {
 
     // get steam ids as query parameters
