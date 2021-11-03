@@ -42,36 +42,25 @@ router.get('/', function(req, res, next) {
     "status": "success",
     "id": "..."
 */
-router.get('/id', function(req, res, next) {
+router.get('/id', function(req, res) {
 
-    const data = {}
+    // get steam id as query parameters
+    const pId = steam.resolve(req.query.id)
 
-    try {
-        // get steam id as query parameters
-        const pId = steam.resolve(req.query.id)
-
-        pId.then((id) => {
-            // return user steam id
-            return res.status(200).json({
-                status: "success",
-                id: id,
-            })
+    pId.then((id) => {
+        // return user steam id
+        return res.status(200).json({
+            status: "success",
+            id: id,
         })
-        .catch((reason) => {
-            // error getting user's steam id
-            return res.status(404).json({
-                status: "error",
-                message: reason.message,
-            })
-        })
-    } catch (error) {
+    })
+    .catch((reason) => {
         // error getting user's steam id
         return res.status(500).json({
             status: "error",
-            message: error,
+            message: reason.message,
         })
-    }
-
+    })
 });
 
 // GET /steam/summary
@@ -105,49 +94,41 @@ router.get('/id', function(req, res, next) {
     }
 }
 */
-router.get('/summary', function(req, res, next) {
+router.get('/summary', function(req, res) {
 
     const data = {}
 
-    try {
-        // get steam id as query parameters
-        const pId = steam.resolve(req.query.id)
+    // get steam id as query parameters
+    const pId = steam.resolve(req.query.id)
 
-        pId.then((id) => {
-            // get user summary
-            const pSummary = steam.getUserSummary(id)
+    pId.then((id) => {
+        // get user summary
+        const pSummary = steam.getUserSummary(id)
 
-            pSummary.then((summary) => {
-                //...
-                data.summary = summary
-                // return summary data
-                return res.status(200).json({
-                    status: "success",
-                    data: data,
-                })
-            })
-            .catch((reason) => {
-                // error getting user summary
-                return res.status(404).json({
-                    status: "error",
-                    message: reason.message,
-                })
+        pSummary.then((summary) => {
+            //...
+            data.summary = summary
+            // return summary data
+            return res.status(200).json({
+                status: "success",
+                data: data,
             })
         })
         .catch((reason) => {
             // error getting user summary
-            return res.status(404).json({
+            return res.status(500).json({
                 status: "error",
                 message: reason.message,
             })
         })
-    } catch (error) {
+    })
+    .catch((reason) => {
         // error getting user summary
         return res.status(500).json({
             status: "error",
-            message: error,
+            message: reason.message,
         })
-    }
+    })
 
 });
 
@@ -194,94 +175,85 @@ router.get('/commonFriends', function(req, res) {
         commonFriends: []
     }
 
-    try {
-        // get steam ids as query parameters
-        // resolve input to steam id
-        const pId1 = steam.resolve(req.query.id1)
-        const pId2 = steam.resolve(req.query.id2)
-        const pAll = [
-            pId1,
-            pId2
-        ]
-        Promise.all(pAll)
-            .then((ids) => {
-                // keep track of ids in data
-                data.id1 = ids[0]
-                data.id2 = ids[1]
+    // get steam ids as query parameters
+    // resolve input to steam id
+    const pId1 = steam.resolve(req.query.id1)
+    const pId2 = steam.resolve(req.query.id2)
+    const pAll = [
+        pId1,
+        pId2
+    ]
+    Promise.all(pAll)
+        .then((ids) => {
+            // keep track of ids in data
+            data.id1 = ids[0]
+            data.id2 = ids[1]
 
-                // promises to get friends lists
-                const pId1Friends = steam.getUserFriends(data.id1)
-                const pId2Friends = steam.getUserFriends(data.id2)
+            // promises to get friends lists
+            const pId1Friends = steam.getUserFriends(data.id1)
+            const pId2Friends = steam.getUserFriends(data.id2)
 
-                const pAll = [
-                    pId1Friends,
-                    pId2Friends
-                ]
+            const pAll = [
+                pId1Friends,
+                pId2Friends
+            ]
 
-                Promise.all(pAll)
-                    .then((friends) => {
-                        const friendList1 = friends[0]
-                        const friendList2 = friends[1]
+            Promise.all(pAll)
+                .then((friends) => {
+                    const friendList1 = friends[0]
+                    const friendList2 = friends[1]
 
-                        // find steam ids of common friends between the two users
-                        const commonFriendIds = []
-                        for (const f1 of friendList1) {
-                            for (const f2 of friendList2) {
-                                if (f1.steamID == f2.steamID) {
-                                    commonFriendIds.push(f1.steamID)
-                                }
+                    // find steam ids of common friends between the two users
+                    const commonFriendIds = []
+                    for (const f1 of friendList1) {
+                        for (const f2 of friendList2) {
+                            if (f1.steamID == f2.steamID) {
+                                commonFriendIds.push(f1.steamID)
                             }
                         }
-                        data.commonFriendIds = commonFriendIds
+                    }
+                    data.commonFriendIds = commonFriendIds
 
-                        // promises to get summaries of common friends
-                        const pCommonFriendSummaries = []
-                        for (const f of commonFriendIds) {
-                            const pSummary = steam.getUserSummary(f)
-                            pCommonFriendSummaries.push(pSummary)
-                        }
+                    // promises to get summaries of common friends
+                    const pCommonFriendSummaries = []
+                    for (const f of commonFriendIds) {
+                        const pSummary = steam.getUserSummary(f)
+                        pCommonFriendSummaries.push(pSummary)
+                    }
 
-                        Promise.all(pCommonFriendSummaries).then((commonFriends) => {
-                            // add common friend data to reply
-                            data.commonFriends = commonFriends
-                            // return common friend data
-                            return res.status(200).json({
-                                status: "success",
-                                data: data,
-                            })
-                        })
-                        .catch((reason) => {
-                            // error getting common friend summaries
-                            return res.status(404).json({
-                                status: "error",
-                                message: reason.message,
-                            })
+                    Promise.all(pCommonFriendSummaries).then((commonFriends) => {
+                        // add common friend data to reply
+                        data.commonFriends = commonFriends
+                        // return common friend data
+                        return res.status(200).json({
+                            status: "success",
+                            data: data,
                         })
                     })
                     .catch((reason) => {
-                        // error getting friend lists
-                        return res.status(404).json({
+                        // error getting common friend summaries
+                        return res.status(500).json({
                             status: "error",
                             message: reason.message,
                         })
                     })
-
-            })
-            .catch((reason) => {
-                // error getting friend lists
-                return res.status(404).json({
-                    status: "error",
-                    message: reason.message,
                 })
-            })
-        
-    } catch (error) {
-        // error getting user summary
-        return res.status(500).json({
-            status: "error",
-            message: error,
+                .catch((reason) => {
+                    // error getting friend lists
+                    return res.status(500).json({
+                        status: "error",
+                        message: reason.message,
+                    })
+                })
+
         })
-    }
+        .catch((reason) => {
+            // error getting friend lists
+            return res.status(500).json({
+                status: "error",
+                message: reason.message,
+            })
+        })
 
 });
 
@@ -345,86 +317,78 @@ router.get('/commonGroups', function(req, res) {
     const id1 = req.query.id1
     const id2 = req.query.id2
 
-    try {
-        // promises to get groups
-        const pId1Groups = steam.getUserGroups(id1)
-        const pId2Groups = steam.getUserGroups(id2)
+    // promises to get groups
+    const pId1Groups = steam.getUserGroups(id1)
+    const pId2Groups = steam.getUserGroups(id2)
 
-        const pGroups = [
-            pId1Groups,
-            pId2Groups
-        ]
+    const pGroups = [
+        pId1Groups,
+        pId2Groups
+    ]
 
-        Promise.all(pGroups)
-            .then((groups) => {
-                const groups1 = groups[0]
-                const groups2 = groups[1]
+    Promise.all(pGroups)
+        .then((groups) => {
+            const groups1 = groups[0]
+            const groups2 = groups[1]
 
-                // find group ids of common groups between the two users
-                const commonGroupIds = []
-                for (const g1 of groups1) {
-                    for (const g2 of groups2) {
-                        if (g1 == g2) {
-                            commonGroupIds.push(g1)
+            // find group ids of common groups between the two users
+            const commonGroupIds = []
+            for (const g1 of groups1) {
+                for (const g2 of groups2) {
+                    if (g1 == g2) {
+                        commonGroupIds.push(g1)
+                    }
+                }
+            }
+            data.commonGroupIds = commonGroupIds
+
+            // promises to get group summaries
+            const pGroupSummaries = []
+            for (const group of commonGroupIds) {
+                //https://steamcommunity.com/gid/103582791429521412/memberslistxml/?xml=1
+                const groupApiUrl = util.format("https://steamcommunity.com/gid/%s/memberslistxml/?xml=1", group)
+                const pGroupSummary = axios.get(groupApiUrl)
+                pGroupSummaries.push(pGroupSummary)
+            }
+
+            Promise.all(pGroupSummaries).then((groupSummaries) => {
+                for (const groupSummary of groupSummaries) {
+                    // parse group summary as xml
+                    xml2js.parseString(groupSummary.data, function (err, result) {
+                        if (err === null) {
+                            // add group data to reply
+                            data.commonGroups.push(result)
+                        } else {
+                            // error occurred
+                            return res.status(404).json({
+                                status: "error",
+                                message: "Error parsing group summaries",
+                            })
                         }
-                    }
-                }
-                data.commonGroupIds = commonGroupIds
-
-                // promises to get group summaries
-                const pGroupSummaries = []
-                for (const group of commonGroupIds) {
-                    //https://steamcommunity.com/gid/103582791429521412/memberslistxml/?xml=1
-                    const groupApiUrl = util.format("https://steamcommunity.com/gid/%s/memberslistxml/?xml=1", group)
-                    const pGroupSummary = axios.get(groupApiUrl)
-                    pGroupSummaries.push(pGroupSummary)
+                    });
                 }
 
-                Promise.all(pGroupSummaries).then((groupSummaries) => {
-                    for (const groupSummary of groupSummaries) {
-                        // parse group summary as xml
-                        xml2js.parseString(groupSummary.data, function (err, result) {
-                            if (err === null) {
-                                // add group data to reply
-                                data.commonGroups.push(result)
-                            } else {
-                                // error occurred
-                                return res.status(404).json({
-                                    status: "error",
-                                    message: "Error parsing group summaries",
-                                })
-                            }
-                        });
-                    }
-
-                    // return common group data
-                    return res.status(200).json({
-                        status: "success",
-                        data: data,
-                    })
-                })
-                .catch((reason) => {
-                    // error getting common group summaries
-                    return res.status(404).json({
-                        status: "error",
-                        message: reason.message,
-                    })
+                // return common group data
+                return res.status(200).json({
+                    status: "success",
+                    data: data,
                 })
             })
             .catch((reason) => {
-                // error getting groups
-                return res.status(404).json({
+                // error getting common group summaries
+                return res.status(500).json({
                     status: "error",
                     message: reason.message,
                 })
             })
-    } catch (error) {
-        // error getting user summary
-        return res.status(500).json({
-            status: "error",
-            message: error,
         })
-    }
+        .catch((reason) => {
+            // error getting groups
+            return res.status(500).json({
+                status: "error",
+                message: reason.message,
+            })
+        })
 
 });
 
@@ -440,10 +404,10 @@ router.post('/games', function(req, res) {
         promises.push(steam.get(util.format("/IPlayerService/GetOwnedGames/v0001/?steamid=%s&include_appinfo=1&include_played_free_games=1&format=json", id)));
     }
 
-    try {
-        var gameDictionary = {};
-        var privateGames = [];
-        Promise.all(promises).then((games) => {
+    var gameDictionary = {};
+    var privateGames = [];
+    Promise.all(promises)
+        .then((games) => {
             //console.log(games);
             for (var i = 0; i < games.length; i++) {
                 var id = ids[i];
@@ -468,14 +432,14 @@ router.post('/games', function(req, res) {
                 gameDictionary: gameDictionary,
                 privateGames: privateGames,
             })
-        });
-    } catch (error) {
-        // error getting games
-        return res.status(500).json({
-            status: "error",
-            message: error,
         })
-    }
+        .catch((reason) => {
+            // error getting games
+            return res.status(500).json({
+                status: "error",
+                message: reason.message,
+            })
+        })
     
 });
 
