@@ -121,16 +121,19 @@ function generateGraph() {
                         // reset select dropdown options
                         select.options.length = 0;
 
-                        // games that at least 2 people play
+                        // filter games
                         let filteredGames = Object.entries(data2.gameDictionary)
+                            // games that at least 2 people play
                             .filter(([key, val]) => val.length > 1)
-                        //console.log(filteredGames)
-                        //76561197989862681
-                        //76561198034620529
+                            // sort alphabetically, case insensitive
+                            .sort(function (a, b) {
+                                // a[0] = game name
+                                // a[1] = array of steam ids, ['...', '...', ...]
+                                return a[0].toLowerCase().localeCompare(b[0].toLowerCase())
+                            })
 
                         // add games to dropdown
                         for (const [key, value] of filteredGames) {
-                            //console.log(key, value);
                             var option = document.createElement("OPTION")
                             option.text = key;
                             option.value = key;
