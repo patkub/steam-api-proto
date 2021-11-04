@@ -3,14 +3,22 @@
 // ehg = 76561197962845430
 // altix = 76561198136308086
 
+window.steamFriends = window.steamFriends || new Object()
+
+// self-invoking closure
+;(function (steamFriends) {
+
 // cytoscape.js object
-window.cy = null;
+steamFriends.cy = null;
 // global progress bar
-window.progressBar = null;
+steamFriends.progressBar = null;
+// global error message
+steamFriends.errorMsg = null;
 
 window.onload = () => {
     // keep track of progress bar element
-    window.progressBar = document.getElementById("progressBar");
+    steamFriends.progressBar = document.getElementById("progressBar");
+    steamFriends.errorMsg = document.getElementById("errorMsg");
 
     /**
      * Button to generate graph
@@ -24,7 +32,7 @@ window.onload = () => {
     const btnReset = document.getElementById("btnResetHighlight")
     btnReset.addEventListener("click", (e) => {
         // unhighlight all nodes
-        resetHighlight(window.cy)
+        resetHighlight(steamFriends.cy)
     })
 
     /**
@@ -33,7 +41,7 @@ window.onload = () => {
     const btnLookup = document.getElementById("btnLookup")
     btnLookup.addEventListener("click", (e) => {
         // show progress bar
-        window.progressBar.style.visibility = 'visible';
+        steamFriends.progressBar.style.visibility = 'visible';
 
         const steamIdLookup = document.getElementById("steamIdLookup")
         const steamIdLookupOut = document.getElementById("steamIdLookupOut")
@@ -45,8 +53,8 @@ window.onload = () => {
             .then(res => res.json())
             .then(data => {
                 // hide progress bar
-                window.progressBar.style.visibility = 'hidden';
-                //console.log(data)
+                steamFriends.progressBar.style.visibility = 'hidden';
+
                 if (data.status == "success") {
                     steamIdLookupOut.value = data.id
                 } else if (data.status == "error") {
@@ -56,7 +64,7 @@ window.onload = () => {
             .catch((error) => {
                 console.error('Error:', error);
                 // hide progress bar
-                window.progressBar.style.visibility = 'hidden';
+                steamFriends.progressBar.style.visibility = 'hidden';
             });
     })
 
@@ -68,8 +76,10 @@ window.onload = () => {
  * Generate graph
  */
 function generateGraph() {
+    // hide error message
+    hideErrorMsg();
     // show progress bar
-    window.progressBar.style.visibility = 'visible';
+    steamFriends.progressBar.style.visibility = 'visible';
 
     // get input
     const in1 = document.getElementById("id1").value
@@ -92,7 +102,9 @@ function generateGraph() {
             if (data[0].status != "success" || data[1].status != "success" || data[2].status != "success") {
                 console.log("steam api error!")
                 // hide progress bar
-                window.progressBar.style.visibility = 'hidden';
+                steamFriends.progressBar.style.visibility = 'hidden';
+                // show error message
+                showErrorMsg('Steam API Error!')
             } else {
                 // get all the games that every plays
 
@@ -103,8 +115,8 @@ function generateGraph() {
                     ids.push(id);
                 }
 
-                window.cy = initCytoscape()
-                makeGraph(window.cy, data[0].data, data[1].data, data[2].data)
+                steamFriends.cy = initCytoscape()
+                makeGraph(steamFriends.cy, data[0].data, data[1].data, data[2].data)
 
                 fetch('/steam/games', {
                     method: 'POST',
@@ -146,29 +158,33 @@ function generateGraph() {
                             var selectIds = data2.gameDictionary[event.target.value]
 
                             // unhighlight all nodes
-                            resetHighlight(window.cy)
+                            resetHighlight(steamFriends.cy)
 
                             // highlight nodes
                             selectIds.forEach(id => {
-                                window.cy.nodes('[id = "' + id + '"]').addClass("highlight");
+                                steamFriends.cy.nodes('[id = "' + id + '"]').addClass("highlight");
                             });
                         });
 
                         // hide progress bar
-                        window.progressBar.style.visibility = 'hidden';
+                        steamFriends.progressBar.style.visibility = 'hidden';
                     })
                     .catch((error) => {
+                        // show error message
+                        showErrorMsg('Steam API Error!')
                         console.error('Error:', error);
                         // hide progress bar
-                        window.progressBar.style.visibility = 'hidden';
+                        steamFriends.progressBar.style.visibility = 'hidden';
                     });
 
             } // end of else
 
         }).catch((error) => {
+            // show error message
+            showErrorMsg('Steam API Error!')
             console.error('Error:', error);
             // hide progress bar
-            window.progressBar.style.visibility = 'hidden';
+            steamFriends.progressBar.style.visibility = 'hidden';
         });
 }
 
@@ -278,3 +294,23 @@ function resetHighlight(cy) {
     // unhighlight all nodes
     cy.nodes('*').removeClass("highlight");
 }
+
+/**
+ * Show an error message alert
+ * @param {String} msg message
+ */
+function showErrorMsg(msg) {
+    // show error message
+    steamFriends.errorMsg.style.visibility = 'visible';
+    steamFriends.errorMsg.textContent = msg;
+}
+
+/**
+ * Hide error message alert
+ */
+function hideErrorMsg() {
+    steamFriends.errorMsg.style.visibility = 'hidden';
+    steamFriends.errorMsg.textContent = '';
+}
+
+})(window.steamFriends) // end self-invoking closure

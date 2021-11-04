@@ -96,3 +96,10 @@ nav {
     transform:  translateX(100%) scaleX(0.5);
   }
 }
+
+#errorMsg {
+  padding: 5px;
+  color: white;
+  text-align: center;
+  visibility: hidden;
+}
