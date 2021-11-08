@@ -8,6 +8,12 @@ window.steamFriends = window.steamFriends || new Object()
 // self-invoking closure
 ;(function (steamFriends) {
 
+// fetch abort controllers
+let controllers = {
+    steamIdLookup: null,
+    generateGraph: null
+}
+
 // cytoscape.js object
 steamFriends.cy = null;
 // global progress bar
@@ -47,8 +53,13 @@ window.onload = () => {
         const steamIdLookupOut = document.getElementById("steamIdLookupOut")
 
         // asynchronous request to steam api proxy
+        // instantiate fetch abort controller
+        controllers.steamIdLookup = new AbortController();
         const steamid = steamIdLookup.value;
-        const pLookup = fetch('/steam/id?id=' + encodeURIComponent(steamid))
+        const pLookup = fetch('/steam/id?id=' + encodeURIComponent(steamid), {
+            method: 'GET',
+            signal: controllers.steamIdLookup.signal,
+        })
         pLookup
             .then(res => res.json())
             .then(data => {
@@ -90,9 +101,20 @@ function generateGraph() {
     const in2Url = encodeURIComponent(in2)
 
     // asynchronous requests to steam api proxy
-    const pUser1 = fetch('/steam/summary?id=' + in1Url)
-    const pUser2 = fetch('/steam/summary?id=' + in2Url)
-    const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1Url + '&id2=' + in2Url)
+    // instantiate fetch abort controller
+    controllers.generateGraph = new AbortController();
+    const pUser1 = fetch('/steam/summary?id=' + in1Url, {
+        method: 'GET',
+        signal: controllers.generateGraph.signal,
+    })
+    const pUser2 = fetch('/steam/summary?id=' + in2Url, {
+        method: 'GET',
+        signal: controllers.generateGraph.signal,
+    })
+    const pCommonFriends = fetch('/steam/commonFriends?id1=' + in1Url + '&id2=' + in2Url, {
+        method: 'GET',
+        signal: controllers.generateGraph.signal,
+    })
 
     Promise.all([pUser1, pUser2, pCommonFriends])
         .then(responses =>
@@ -124,6 +146,7 @@ function generateGraph() {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(ids),
+                    signal: controllers.generateGraph.signal,
                 })
                     .then(response => response.json())
                     .then(data2 => {
@@ -312,5 +335,20 @@ function hideErrorMsg() {
     steamFriends.errorMsg.style.visibility = 'hidden';
     steamFriends.errorMsg.textContent = '';
 }
+
+const socket = io();
+socket.on('uncaughtException', (msg) => {
+    // nodejs uncaughtException, maybe network error
+    console.log('On uncaughtException', msg)
+    // default error message
+    showErrorMsg("Node.js network error!")
+    // abort fetch
+    if (controllers.steamIdLookup) {
+        controllers.steamIdLookup.abort()
+    }
+    if (controllers.generateGraph) {
+        controllers.generateGraph.abort()
+    }
+});
 
 })(window.steamFriends) // end self-invoking closure

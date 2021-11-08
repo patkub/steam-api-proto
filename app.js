@@ -28,6 +28,7 @@ app.use(sassMiddleware({
 }));
 //app.use(cors()) // enable cors
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/vendor/socket.io', express.static(__dirname + '/node_modules/socket.io/'));
 
 app.use('/', indexRouter);
 app.use('/steam', steamRouter)
