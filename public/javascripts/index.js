@@ -80,7 +80,7 @@ window.onload = () => {
     })
 
     // generate graph on page load
-    generateGraph()
+    //generateGraph()
 }
 
 /**
