@@ -14,3 +14,5 @@ Run the Express.js project:
 ```
 npm start
 ```
+
+Navigate to http://localhost:3000/ in Chrome or Firefox
